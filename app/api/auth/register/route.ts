@@ -6,7 +6,6 @@ import { SignJWT } from 'jose';
 export async function POST(req: Request) {
   try {
     const { username, password } = await req.json();
-    console.log("Données reçues pour l'inscription :", { username, password: password ? "****" : null });
 
     // 1. Validation des champs requis
     if (!username || !password) {
