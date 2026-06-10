@@ -297,11 +297,11 @@ export default function RootLayout({
             "
           >
             {children}
-            <Analytics />
+            
           </main>
 
         </div>
-
+<Analytics />
       </body>
     </html>
   );
