@@ -1,14 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+
   typescript: {
-    // Cela ignorera les erreurs de type lors du build Vercel
     ignoreBuildErrors: true,
   },
+
   eslint: {
-    // Cela ignorera les erreurs de linting lors du build Vercel
     ignoreDuringBuilds: true,
   },
+
+  env: {
+    DATABASE_URL: process.env.DATABASE_URL,
+  },
+
   images: {
     remotePatterns: [
       {
@@ -22,7 +27,6 @@ const nextConfig = {
       },
     ],
   },
-  
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig
