@@ -4,7 +4,7 @@ import './globals.css';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Analytics } from "@vercel/analytics/next"
+
 
 interface UserSession {
   id: number;
@@ -297,11 +297,10 @@ export default function RootLayout({
             "
           >
             {children}
-            
           </main>
 
         </div>
-<Analytics />
+
       </body>
     </html>
   );
