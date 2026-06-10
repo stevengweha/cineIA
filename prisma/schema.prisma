@@ -1,0 +1,70 @@
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("SUPABASE_DB_URL")
+}
+
+model movies {
+  id               Int                 @id
+  title            String
+  original_title   String?
+  overview         String?
+  release_date     DateTime?           @db.Date
+  genres           String[]
+  vote_average     Float?
+  vote_count       Int?
+  popularity       Float?
+  poster_path      String?
+  ingested_at      DateTime?           @default(now())
+  ratings          ratings[]
+  sentiment_scores sentiment_scores[]
+  recommendations  recommendations[]
+}
+
+model users {
+  id              Int               @id @default(autoincrement())
+  username        String            @unique
+  password_hash   String
+  created_at      DateTime?         @default(now())
+  ratings         ratings[]
+  recommendations recommendations[]
+}
+
+model ratings {
+  id       Int       @id @default(autoincrement())
+  user_id  Int?
+  movie_id Int?
+  rating   Float
+  rated_at DateTime? @default(now())
+  users    users?    @relation(fields: [user_id], references: [id])
+  movies   movies?   @relation(fields: [movie_id], references: [id])
+
+  @@unique([user_id, movie_id])
+}
+
+model sentiment_scores {
+  id              Int       @id @default(autoincrement())
+  movie_id        Int?
+  source          String?   @default("reddit")
+  sentiment_label String?
+  sentiment_score Float?
+  post_count      Int?
+  computed_at     DateTime? @default(now())
+  movies          movies?   @relation(fields: [movie_id], references: [id])
+}
+
+model recommendations {
+  id            Int       @id @default(autoincrement())
+  user_id       Int?
+  movie_id      Int?
+  score         Float?
+  model_version String?
+  generated_at  DateTime? @default(now())
+  users         users?    @relation(fields: [user_id], references: [id])
+  movies        movies?   @relation(fields: [movie_id], references: [id])
+}
