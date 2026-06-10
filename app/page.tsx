@@ -1,96 +1,389 @@
-import { prisma } from '@/lib/prisma';
-import Link from 'next/link';
-// import MovieDetailsModal from './MovieDetailsModal'
+'use client'
 
+import { useState, useEffect, useMemo } from 'react'
+import { catalogueAPI } from '@/lib/api'
+import MovieCard from '@/components/MovieCard'
+import { useAuthStore } from '@/store/auth'
 
-// Fonction pour récupérer les films (Server Component)
-async function getRecentMovies() {
-  return await prisma.movies.findMany({
-    take: 10,
-    orderBy: { ingested_at: 'desc' },
-  });
+interface Movie {
+  id: number
+  title: string
+  poster_path: string
+  vote_average: number
+  overview: string
+  release_date: string
+  sentiment: string
+  sentiment_score: number
 }
 
-export default async function HomePage() {
-  const movies = await getRecentMovies();
+export default function CataloguePage() {
+  const { user } = useAuthStore()
 
-  // Fonction utilitaire pour formater l'URL du poster de manière stable
-  const getPosterUrl = (posterPath: string | null) => {
-    if (!posterPath) return '/placeholder.png';
-    
-    // Si l'URL stockée est déjà complète (http...), on la retourne directement
-    if (posterPath.startsWith('http')) return posterPath;
-    
-    // On récupère l'URL de base (ex: définie dans ton .env) ou un fallback TMDB robuste
-    const baseUrl = process.env.NEXT_PUBLIC_TMDB_IMG || 'https://image.tmdb.org/t/p/w500';
-    
-    // On s'assure qu'il y a un seul slash '/' entre l'URL de base et le nom du fichier
-    const cleanPath = posterPath.startsWith('/') ? posterPath : `/${posterPath}`;
-    
-    return `${baseUrl}${cleanPath}`;
-  };
+  const [movies, setMovies] = useState<Movie[]>([])
+  const [page, setPage] = useState(1)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [search, setSearch] = useState('')
+
+  useEffect(() => {
+    const loadMovies = async () => {
+      setLoading(true)
+      setError('')
+
+      try {
+        const limit = 20
+        const offset = (page - 1) * limit
+
+        const data = await catalogueAPI.getMovies(
+          limit,
+          offset
+        )
+
+        setMovies(data.movies)
+      } catch {
+        setError('Erreur lors du chargement des films')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadMovies()
+  }, [page])
+
+  const filteredMovies = useMemo(() => {
+    return movies.filter((movie) =>
+      movie.title
+        .toLowerCase()
+        .includes(search.toLowerCase())
+    )
+  }, [movies, search])
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4 md:p-8 space-y-10">
-      
-      {/* Header avec bienvenue (Style Hero Banner) */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 p-8 md:p-12 rounded-3xl shadow-2xl border border-gray-700">
-        <div className="relative z-10">
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-400">
-            Bienvenue sur CineMatch 🎬
-          </h1>
-          <p className="text-gray-400 text-lg md:text-xl max-w-2xl">
-            L'IA qui connaît tes goûts mieux que toi. Découvre les derniers ajouts sélectionnés spécialement pour ton profil.
-          </p>
-        </div>
-        
-        {/* Élément décoratif en arrière-plan */}
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-red-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse"></div>
-      </section>
+    <div className="min-h-screen p-4 md:p-8">
 
-      {/* Grille de films */}
-      <section>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-100">Derniers ajouts</h2>
-          <span className="text-sm font-medium text-red-500 bg-red-500/10 px-3 py-1 rounded-full">Nouveautés</span>
-        </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6 lg:gap-8">
-          {movies.map((movie) => (
-            <div 
-              key={movie.id} 
-              className="group flex flex-col bg-gray-800 rounded-2xl overflow-hidden border border-gray-700 hover:border-red-500/50 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-red-500/20"
+      <div className="max-w-[1600px] mx-auto space-y-8">
+
+        {/* HERO */}
+
+        <section
+          className="
+            relative
+            overflow-hidden
+            rounded-3xl
+            border
+            border-white/10
+            bg-white/5
+            backdrop-blur-xl
+            p-6
+            md:p-10
+          "
+        >
+          <div className="absolute inset-0 overflow-hidden">
+
+            <div
+              className="
+                absolute
+                -top-20
+                -right-20
+                w-96
+                h-96
+                bg-red-500/10
+                blur-[140px]
+              "
+            />
+
+            <div
+              className="
+                absolute
+                -bottom-20
+                -left-20
+                w-96
+                h-96
+                bg-purple-500/10
+                blur-[140px]
+              "
+            />
+
+          </div>
+
+          <div className="relative z-10">
+
+            <h1
+              className="
+                text-3xl
+                sm:text-4xl
+                md:text-6xl
+                font-black
+                tracking-tight
+                bg-gradient-to-r
+                from-red-500
+                via-pink-500
+                to-purple-500
+                bg-clip-text
+                text-transparent
+              "
             >
-              {/* Conteneur de l'image avec un ratio 2:3 parfait pour les affiches */}
-              <div className="relative w-full aspect-[2/3] overflow-hidden bg-gray-900">
-                <img 
-                  src={getPosterUrl(movie.poster_path)} 
-                  alt={movie.title} 
-                  className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
-                />
-                {/* Voile dégradé noir en bas de l'image pour le style */}
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              🎬 Catalogue CineMatch
+            </h1>
+
+            <p
+              className="
+                mt-4
+                text-gray-400
+                max-w-2xl
+                text-sm
+                md:text-lg
+              "
+            >
+              Découvrez les films les plus populaires,
+              notez vos favoris et laissez l'IA apprendre
+              vos goûts cinématographiques.
+            </p>
+
+            <div className="flex flex-wrap gap-3 mt-6">
+
+              <div
+                className="
+                  px-4
+                  py-2
+                  rounded-xl
+                  bg-white/5
+                  border
+                  border-white/10
+                "
+              >
+                <p className="text-xs text-gray-500">
+                  Films affichés
+                </p>
+                <p className="font-bold">
+                  {filteredMovies.length}
+                </p>
               </div>
-              
-              {/* Contenu de la carte */}
-              <div className="p-4 md:p-5 flex flex-col flex-grow">
-                <h3 className="font-bold text-gray-100 line-clamp-1 mb-3" title={movie.title}>
-                  {movie.title}
-                </h3>
-                
-                {/* Bouton repoussé vers le bas avec mt-auto */}
-                <Link 
-                  href={`/catalogue/${movie.id}`}
-                  className="mt-auto w-full py-2.5 px-4 bg-gray-700/50 text-gray-300 font-semibold text-sm text-center rounded-xl hover:bg-red-600 hover:text-white transition-colors border border-gray-600 hover:border-transparent"
-                >
-                  Voir les détails
-                </Link>
+
+              <div
+                className="
+                  px-4
+                  py-2
+                  rounded-xl
+                  bg-white/5
+                  border
+                  border-white/10
+                "
+              >
+                <p className="text-xs text-gray-500">
+                  Page
+                </p>
+                <p className="font-bold">
+                  {page}
+                </p>
               </div>
+
             </div>
-          ))}
+
+          </div>
+        </section>
+
+        {/* SEARCH */}
+
+        <div
+          className="
+            flex
+            flex-col
+            md:flex-row
+            gap-4
+            justify-between
+            items-start
+            md:items-center
+          "
+        >
+          <h2 className="text-2xl font-bold">
+            Tous les films
+          </h2>
+
+          <input
+            type="text"
+            placeholder="🔍 Rechercher un film..."
+            value={search}
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
+            className="
+              w-full
+              md:w-96
+              px-5
+              py-3
+              rounded-2xl
+              bg-white/5
+              border
+              border-white/10
+              text-white
+              placeholder:text-gray-500
+              focus:outline-none
+              focus:border-red-500
+              transition
+            "
+          />
         </div>
-      </section>
-      
+
+        {/* ERROR */}
+
+        {error && (
+          <div
+            className="
+              p-4
+              rounded-2xl
+              bg-red-500/10
+              border
+              border-red-500/20
+              text-red-300
+            "
+          >
+            {error}
+          </div>
+        )}
+
+        {/* LOADING */}
+
+        {loading ? (
+          <div
+            className="
+              grid
+              grid-cols-2
+              sm:grid-cols-3
+              md:grid-cols-4
+              xl:grid-cols-5
+              2xl:grid-cols-6
+              gap-4
+              md:gap-6
+            "
+          >
+            {Array.from({ length: 20 }).map(
+              (_, index) => (
+                <div
+                  key={index}
+                  className="
+                    aspect-[2/3]
+                    rounded-3xl
+                    bg-white/5
+                    animate-pulse
+                  "
+                />
+              )
+            )}
+          </div>
+        ) : (
+          <>
+            {/* GRID */}
+
+            <div
+              className="
+                grid
+                grid-cols-2
+                sm:grid-cols-3
+                md:grid-cols-4
+                xl:grid-cols-5
+                2xl:grid-cols-6
+                gap-4
+                md:gap-6
+              "
+            >
+              {filteredMovies.map((movie) => (
+                <MovieCard
+                  key={movie.id}
+                  movie={movie}
+                  userId={user?.id || 0}
+                />
+              ))}
+            </div>
+
+            {/* EMPTY STATE */}
+
+            {filteredMovies.length === 0 && (
+              <div
+                className="
+                  text-center
+                  py-20
+                "
+              >
+                <h3 className="text-xl font-bold">
+                  Aucun résultat
+                </h3>
+
+                <p className="text-gray-500 mt-2">
+                  Essayez une autre recherche.
+                </p>
+              </div>
+            )}
+
+            {/* PAGINATION */}
+
+            <div
+              className="
+                flex
+                justify-center
+                items-center
+                gap-3
+                mt-12
+                flex-wrap
+              "
+            >
+              <button
+                onClick={() =>
+                  setPage((prev) =>
+                    Math.max(1, prev - 1)
+                  )
+                }
+                disabled={page === 1}
+                className="
+                  px-5
+                  py-3
+                  rounded-2xl
+                  bg-white/5
+                  border
+                  border-white/10
+                  hover:border-red-500
+                  disabled:opacity-40
+                  transition
+                "
+              >
+                ← Précédent
+              </button>
+
+              <div
+                className="
+                  px-5
+                  py-3
+                  rounded-2xl
+                  bg-gradient-to-r
+                  from-red-600
+                  to-pink-600
+                  font-bold
+                "
+              >
+                {page}
+              </div>
+
+              <button
+                onClick={() =>
+                  setPage((prev) => prev + 1)
+                }
+                className="
+                  px-5
+                  py-3
+                  rounded-2xl
+                  bg-white/5
+                  border
+                  border-white/10
+                  hover:border-red-500
+                  transition
+                "
+              >
+                Suivant →
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
-  );
+  )
 }
