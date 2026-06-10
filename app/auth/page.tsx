@@ -13,37 +13,36 @@ export default function AuthPage() {
   const router = useRouter();
 
   const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+  e.preventDefault();
+  setLoading(true);
+  setError(null);
 
-    try {
-      const endpoint = isLogin
-        ? '/api/auth/login'
-        : '/api/auth/register';
-console.log("Tentative d'appel vers :", endpoint);
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
+  try {
+    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
 
-      const data = await res.json();
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
 
-      if (!res.ok) {
-    const rawText = await res.text();
-    console.error("Réponse reçue du serveur :", rawText); // Ouvre ta console F12
-    throw new Error("Erreur serveur, voir la console pour le détail.");
-  }
+    // 1. Lire TOUJOURS le JSON une seule fois, quel que soit le statut HTTP
+    const data = await res.json();
 
-      router.push('/');
-      router.refresh();
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    // 2. Traiter le résultat avec cette variable unique 'data'
+    if (!res.ok) {
+      throw new Error(data.error || "Erreur lors de l'authentification");
     }
-  };
+
+    // Succès
+    router.push('/');
+    router.refresh();
+  } catch (err: any) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-950 via-gray-900 to-black px-4">
