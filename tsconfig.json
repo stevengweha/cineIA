@@ -18,10 +18,10 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
+     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
+    }
     },
     "allowJs": true,
     "noEmit": true,
