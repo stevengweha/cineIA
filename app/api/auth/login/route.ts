@@ -7,11 +7,6 @@ export async function POST(req: Request) {
   try {
     const { username, password } = await req.json();
 
-    // 1. ROBUSTESSE : Validation stricte de la présence ET du type de données
-    if (!username || typeof username !== 'string' || !password || typeof password !== 'string') {
-      return NextResponse.json({ error: "Identifiants invalides" }, { status: 400 });
-    }
-
     const user = await prisma.users.findUnique({
       where: { username: username }
     });
@@ -25,21 +20,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Mot de passe incorrect" }, { status: 401 });
     }
 
-    // 2. ROBUSTESSE & SÉCURITÉ : On retire la clé par défaut vulnérable
-    const secretString = process.env.JWT_SECRET;
-    if (!secretString) {
-      throw new Error("CRITIQUE: JWT_SECRET n'est pas défini sur le serveur");
-    }
-
-    // 3. Création du Token JWT (valide 24h)
-    const secret = new TextEncoder().encode(secretString);
+    // 1. Création du Token JWT (valide 24h)
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-key');
     const token = await new SignJWT({ userId: user.id, username: user.username })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('24h')
       .sign(secret);
 
-    // 4. Création de la réponse avec le Cookie sécurisé
+    // 2. Création de la réponse avec le Cookie sécurisé
     const response = NextResponse.json({ success: true });
     
     response.cookies.set('auth_token', token, {

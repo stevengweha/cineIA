@@ -7,10 +7,10 @@ export async function POST(req: Request) {
   try {
     const { username, password } = await req.json();
 
-    // 1. ROBUSTESSE : Validation des champs requis ET de leur type
-    if (!username || typeof username !== 'string' || !password || typeof password !== 'string') {
+    // 1. Validation des champs requis
+    if (!username || !password) {
       return NextResponse.json(
-        { success: false, error: "Nom d'utilisateur et mot de passe invalides" },
+        { success: false, error: "Nom d'utilisateur et mot de passe requis" },
         { status: 400 }
       );
     }
@@ -28,9 +28,8 @@ export async function POST(req: Request) {
     });
 
     if (existingUser) {
-      // CORRECTION : retrait des caractères parasites "內部"
       return NextResponse.json(
-        { success: false, error: "Ce nom d'utilisateur est déjà pris" },
+        { success: false, error: "Ce nom d'utilisateur est déjà內部 pris" },
         { status: 400 }
       );
     }
@@ -49,9 +48,9 @@ export async function POST(req: Request) {
 
     // 5. Génération automatique du Token JWT (Valide 24h)
     const secretString = process.env.JWT_SECRET;
-    if (!secretString) {
-      throw new Error("JWT_SECRET n'est pas défini dans les variables d'environnement");
-    }
+if (!secretString) {
+  throw new Error("JWT_SECRET n'est pas défini dans les variables d'environnement");
+}
     const secret = new TextEncoder().encode(secretString);
 
     const token = await new SignJWT({ userId: newUser.id, username: newUser.username })
