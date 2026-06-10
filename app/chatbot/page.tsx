@@ -46,18 +46,20 @@ export default function ChatbotPage() {
     setLoading(true)
 
     try {
-      const chatHistory: [string, string][] = []
-
-      // CORRECTION DU BUG DE L'HISTORIQUE : On parcourt proprement les messages
-      // pour coupler chaque message 'user' avec la réponse 'assistant' qui le suit directement.
-      for (let i = 0; i < messages.length; i++) {
-        if (messages[i].role === 'user' && messages[i + 1]?.role === 'assistant') {
-          chatHistory.push([
-            messages[i].content,
-            messages[i + 1].content
-          ])
-        }
-      }
+      const chatHistory = messages
+  .filter((_, index) => index > 0) // enlève le message de bienvenue
+  .reduce((acc: [string, string][], msg, index, arr) => {
+    if (
+      msg.role === 'user' &&
+      arr[index + 1]?.role === 'assistant'
+    ) {
+      acc.push([
+        msg.content,
+        arr[index + 1].content,
+      ])
+    }
+    return acc
+  }, [])
 
       // Ton front envoie le tableau 'chatHistory' propre que ton FastAPI transformera en 'history_text'
       const response = await chatAPI.sendMessage(
