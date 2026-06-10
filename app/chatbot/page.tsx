@@ -162,10 +162,9 @@ export default function ChatbotPage() {
               flex items-center justify-center
               min-w-[90px]
 
-              ${
-                loading || !input.trim()
-                  ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-red-600 to-pink-600 hover:opacity-90'
+              ${loading || !input.trim()
+                ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                : 'bg-gradient-to-r from-red-600 to-pink-600 hover:opacity-90'
               }
             `}
           >
