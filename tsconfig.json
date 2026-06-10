@@ -19,7 +19,9 @@
     "declarationMap": true,
     "sourceMap": true,
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     },
     "allowJs": true,
     "noEmit": true,
@@ -30,10 +32,10 @@
       {
         "name": "next"
       }
-    ]
-    
+    ],
+    "moduleResolution": "node"
   },
- "include": [
+  "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",

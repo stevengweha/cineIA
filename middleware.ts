@@ -20,5 +20,6 @@ export function middleware(request: NextRequest) {
 
 // On protège toutes les routes SAUF les assets, l'API d'auth et le favicon
 export const config = {
-  matcher: ['/((?!api/auth/login|_next/static|_next/image|favicon.ico).*)'],
+  // On exclut tout ce qui commence par /api/auth/ ET les dossiers statiques
+  matcher: ['/((?!api/auth/.*|_next/static|_next/image|favicon.ico).*)'],
 };

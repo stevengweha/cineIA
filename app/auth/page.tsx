@@ -21,7 +21,7 @@ export default function AuthPage() {
       const endpoint = isLogin
         ? '/api/auth/login'
         : '/api/auth/register';
-
+console.log("Tentative d'appel vers :", endpoint);
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -31,8 +31,10 @@ export default function AuthPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Erreur lors de l'authentification");
-      }
+    const rawText = await res.text();
+    console.error("Réponse reçue du serveur :", rawText); // Ouvre ta console F12
+    throw new Error("Erreur serveur, voir la console pour le détail.");
+  }
 
       router.push('/');
       router.refresh();

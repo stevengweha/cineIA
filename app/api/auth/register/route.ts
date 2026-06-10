@@ -6,6 +6,7 @@ import { SignJWT } from 'jose';
 export async function POST(req: Request) {
   try {
     const { username, password } = await req.json();
+    console.log("Données reçues pour l'inscription :", { username, password: password ? "****" : null });
 
     // 1. Validation des champs requis
     if (!username || !password) {
@@ -47,7 +48,12 @@ export async function POST(req: Request) {
     });
 
     // 5. Génération automatique du Token JWT (Valide 24h)
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-key');
+    const secretString = process.env.JWT_SECRET;
+if (!secretString) {
+  throw new Error("JWT_SECRET n'est pas défini dans les variables d'environnement");
+}
+    const secret = new TextEncoder().encode(secretString);
+
     const token = await new SignJWT({ userId: newUser.id, username: newUser.username })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
