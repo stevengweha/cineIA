@@ -197,7 +197,7 @@ export default function CataloguePage() {
           "
         >
           <h2 className="text-2xl font-bold">
-            Tous les films
+            Catalogue complet
           </h2>
 
           <input

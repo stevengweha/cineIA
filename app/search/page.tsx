@@ -114,7 +114,7 @@ return ( <div className="min-h-screen p-4 md:p-8">
             text-transparent
           "
         >
-          🔍 Recherche IA
+          🔍 Recherche : trouver la pépite
         </h1>
 
         <p
@@ -124,8 +124,7 @@ return ( <div className="min-h-screen p-4 md:p-8">
             max-w-2xl
           "
         >
-          Recherchez instantanément parmi
-          tous les films de votre catalogue.
+          Recherchez instantanément vos productions préférées dans le catalogue.
         </p>
 
       </div>

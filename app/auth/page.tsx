@@ -45,19 +45,41 @@ export default function AuthPage() {
 };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-950 via-gray-900 to-black px-4">
+  <div 
+  className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-950"
+>
+  {/* Couche image avec opacité pour masquer le manque de netteté */}
+  <div 
+    className="absolute inset-0 bg-cover bg-center opacity-70" 
+    style={{ backgroundImage: "url('/bk.jpg')" }} 
+  />
+    Overlay sombre pour garder la lisibilité du texte
+    <div className="absolute inset-0 bg-black/10 backdrop-blur-sm" />
 
-      {/* CARD */}
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl p-8">
+    {/* Conteneur pour le titre au-dessus de la carte */}
+    <div className="relative z-10 text-center mb-8">
+      <h1 className="text-4xl md:text-5xl font-black text-white mb-4">
+        On regarder quoi ce soir ?
+      </h1>
+      <p className="text-gray-300 text-lg">
+        Rejoins nous pour accéder à des recommandations personnalisées.
+      </p>
+    </div>
 
-        {/* HEADER */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white">
-            {isLogin ? 'Connexion' : 'Inscription'}
-          </h1>
+    {/* Ta CARTE actuelle, ajout de relative z-10 pour qu'elle passe au-dessus du fond */}
+    <div className="relative z-10 w-full max-w-md rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl shadow-2xl p-8">
+      
+      {/* HEADER */}
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold text-white">
+          {isLogin ? 'Connexion' : 'Inscription'}
+        </h2>
+      
 
           <p className="text-sm text-gray-400 mt-2">
-            CineMatch — découvre, note et recommande des films
+            CineMatch — découvre, note et recommande des films. <br />
+            L'IA apprend de tes goûts pour te suggérer les meilleurs films.
+          
           </p>
         </div>
 
