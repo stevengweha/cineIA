@@ -47,14 +47,15 @@ export const catalogueAPI = {
 }
 
 // ── Recommendations API ───────────────────────────────────────────────────
+// Dans lib/api.ts
 export const recommendationAPI = {
-  getRecommendations: async (userId: number) => {
+  getRecommendations: async () => { // Plus d'argument userId
     try {
-      const response = await api.get('/recommendations', { params: { user_id: userId } })
-      return response.data
+      // L'API lira le cookie 'auth_token' côté serveur
+      const response = await api.get('/recommendations'); 
+      return response.data;
     } catch (error) {
-      console.error('Erreur lors de la récupération des recommandations:', error)
-      throw error
+      throw error;
     }
   },
 }

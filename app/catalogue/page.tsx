@@ -200,9 +200,9 @@ export default function CataloguePage() {
             Catalogue complet
           </h2>
 
-          <input
+          {/* <input
             type="text"
-            placeholder="🔍 Rechercher dans la liste..."
+            placeholder="🔍 Rechercher dans la page..."
             value={search}
             onChange={(e) =>
               setSearch(e.target.value)
@@ -222,7 +222,7 @@ export default function CataloguePage() {
               focus:border-red-500
               transition
             "
-          />
+          /> */}
         </div>
 
         {/* ERROR */}

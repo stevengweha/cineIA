@@ -114,7 +114,7 @@ return ( <div className="min-h-screen p-4 md:p-8">
             text-transparent
           "
         >
-          🔍 Recherche : trouver la pépite
+          🔍 Recherche : trouvez vos pépite
         </h1>
 
         <p
@@ -148,7 +148,7 @@ return ( <div className="min-h-screen p-4 md:p-8">
         onChange={(e) =>
           setQuery(e.target.value)
         }
-        placeholder="🔍 Rechercher un film (minimum 2 caractères)..."
+        placeholder="🔍 Rechercher un titre (minimum 2 caractères)..."
         className="
           w-full
           bg-transparent
