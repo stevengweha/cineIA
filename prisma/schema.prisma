@@ -21,6 +21,7 @@ model movies {
   popularity       Float?
   poster_path      String?
   ingested_at      DateTime?           @default(now())
+  providers        Json?
   ratings          ratings[]
   sentiment_scores sentiment_scores[]
   recommendations  recommendations[]
@@ -30,6 +31,7 @@ model users {
   id              Int               @id @default(autoincrement())
   username        String            @unique
   password_hash   String
+  accepted_cgu    Boolean           @default(false)
   created_at      DateTime?         @default(now())
   ratings         ratings[]
   recommendations recommendations[]

@@ -23,6 +23,9 @@ export default function MovieDetailsModal({
     const [rating, setRating] = useState(3)
     const [loading, setLoading] = useState(false)
     const [rated, setRated] = useState(false)
+    
+    // Logique sécurisée pour les fournisseurs
+    const providers = Array.isArray(movie.providers) ? movie.providers : [];
 
     if (!isOpen) return null
 
@@ -49,7 +52,6 @@ export default function MovieDetailsModal({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-
             <div
                 className="absolute inset-0 bg-black/80 backdrop-blur-sm"
                 onClick={onClose}
@@ -86,18 +88,17 @@ export default function MovieDetailsModal({
                 </button>
 
                 <div className="grid md:grid-cols-[320px_1fr] gap-8 p-6">
-
                     <div className="relative aspect-[2/3] overflow-hidden rounded-3xl">
                         <Image
                             src={`${TMDB_IMG}${movie.poster_path}`}
                             alt={movie.title}
                             fill
+                            sizes="(max-width: 768px) 100vw, 320px"
                             className="object-cover"
                         />
                     </div>
 
                     <div className="space-y-6">
-
                         <div>
                             <h2 className="text-4xl font-black">
                                 {movie.title}
@@ -109,10 +110,14 @@ export default function MovieDetailsModal({
                                 </span>
 
                                 {movie.release_date && (
-                                    <span>
-                                        📅 {movie.release_date}
-                                    </span>
-                                )}
+  <span>
+    📅 {new Date(movie.release_date).toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })}
+  </span>
+)}
                             </div>
                         </div>
 
@@ -127,14 +132,41 @@ export default function MovieDetailsModal({
                             </p>
                         </div>
 
-                        <div className="border-t border-white/10 pt-6">
+                        {providers.length > 0 && (
+                            <div className="pt-6">
+                                <h3 className="font-bold mb-4">Où regarder</h3>
+                                <div className="flex flex-wrap gap-3">
+                                    {providers.map((p: any, index: number) => (
+                                        <a 
+                                            key={index} 
+                                            href={p.link} 
+                                            target="_blank" 
+                                            rel="noreferrer"
+                                            className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-2 rounded-lg hover:bg-white/10 transition"
+                                            title={p.name}
+                                        >
+                                            {p.icon && (
+                                                <Image 
+                                                    src={p.icon} 
+                                                    alt={p.name} 
+                                                    width={24} 
+                                                    height={24} 
+                                                    className="rounded-md"
+                                                />
+                                            )}
+                                            <span className="text-sm font-medium">{p.name}</span>
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
+                        <div className="border-t border-white/10 pt-6">
                             <h3 className="font-bold mb-4">
                                 Noter ce film
                             </h3>
 
                             <div className="flex flex-col md:flex-row gap-3">
-
                                 <select
                                     value={rating}
                                     onChange={(e) =>
@@ -185,17 +217,11 @@ export default function MovieDetailsModal({
                                             ? 'Chargement...'
                                             : 'Noter'}
                                 </button>
-
                             </div>
-
                         </div>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
     )
 }

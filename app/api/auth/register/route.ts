@@ -5,12 +5,20 @@ import { SignJWT } from 'jose';
 
 export async function POST(req: Request) {
   try {
-    const { username, password } = await req.json();
+    // 1. Extraction des données incluant acceptedCGU
+    const { username, password, acceptedCGU } = await req.json();
 
-    // 1. Validation des champs requis
+    // 2. Validation des champs requis et du consentement
     if (!username || !password) {
       return NextResponse.json(
         { success: false, error: "Nom d'utilisateur et mot de passe requis" },
+        { status: 400 }
+      );
+    }
+
+    if (acceptedCGU !== true) {
+      return NextResponse.json(
+        { success: false, error: "Vous devez accepter les CGU pour créer un compte" },
         { status: 400 }
       );
     }
@@ -22,35 +30,36 @@ export async function POST(req: Request) {
       );
     }
 
-    // 2. Vérification si l'utilisateur existe déjà
+    // 3. Vérification si l'utilisateur existe déjà
     const existingUser = await prisma.users.findUnique({
       where: { username: username }
     });
 
     if (existingUser) {
       return NextResponse.json(
-        { success: false, error: "Ce nom d'utilisateur est déjà內部 pris" },
+        { success: false, error: "Ce nom d'utilisateur est déjà pris" },
         { status: 400 }
       );
     }
 
-    // 3. Hachage sécurisé du mot de passe
+    // 4. Hachage sécurisé du mot de passe
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 4. Création de l'utilisateur en Base de Données
+    // 5. Création de l'utilisateur avec l'état du consentement
     const newUser = await prisma.users.create({
       data: {
         username: username,
-        password_hash: hashedPassword
+        password_hash: hashedPassword,
+        accepted_cgu: acceptedCGU, // Sauvegarde du consentement (true)
       }
     });
 
-    // 5. Génération automatique du Token JWT (Valide 24h)
+    // 6. Génération automatique du Token JWT
     const secretString = process.env.JWT_SECRET;
-if (!secretString) {
-  throw new Error("JWT_SECRET n'est pas défini dans les variables d'environnement");
-}
+    if (!secretString) {
+      throw new Error("JWT_SECRET n'est pas défini");
+    }
     const secret = new TextEncoder().encode(secretString);
 
     const token = await new SignJWT({ userId: newUser.id, username: newUser.username })
@@ -59,7 +68,7 @@ if (!secretString) {
       .setExpirationTime('24h')
       .sign(secret);
 
-    // 6. Création de la réponse avec le Cookie sécurisé (Auto-login)
+    // 7. Création de la réponse avec le Cookie sécurisé
     const response = NextResponse.json({ 
       success: true, 
       message: "Compte créé avec succès",
@@ -67,10 +76,10 @@ if (!secretString) {
     });
     
     response.cookies.set('auth_token', token, {
-      httpOnly: true, // Protection XSS
-      secure: process.env.NODE_ENV === 'production', // HTTPS uniquement en prod
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 // 24 heures
+      maxAge: 60 * 60 * 24
     });
 
     return response;

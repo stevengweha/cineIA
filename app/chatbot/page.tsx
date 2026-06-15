@@ -133,6 +133,7 @@ export default function ChatbotPage() {
           <input
             ref={inputRef}
             type="text"
+            autoComplete="off"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {

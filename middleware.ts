@@ -15,6 +15,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  //laisser cgu et politique de confidentialité accessibles sans token
+  if (pathname === '/cgu' || pathname === '/privacy') {
+    return NextResponse.next();
+  }
   // Si on essaie d'accéder à l'app sans token, on renvoie vers /auth
   if (!token && pathname !== '/auth') {
     return NextResponse.redirect(new URL('/auth', request.url));
@@ -24,6 +28,8 @@ export function middleware(request: NextRequest) {
   if (token && pathname === '/auth') {
     return NextResponse.redirect(new URL('/', request.url));
   }
+
+  
 
   return NextResponse.next();
 }
