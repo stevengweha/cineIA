@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -8,31 +8,43 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [acceptedCGU, setAcceptedCGU] = useState(false); // État booléen pour le RGPD
+  const [acceptedCGU, setAcceptedCGU] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // LOGIQUE TYPING EFFECT
+  const [typedTitle, setTypedTitle] = useState('');
   const router = useRouter();
+
+  const titleText = isLogin 
+    ? "Prêt pour votre prochain coup de cœur ?" 
+    : "L'IA trouve le film parfait pour vous.";
+
+  useEffect(() => {
+    let i = 0;
+    setTypedTitle('');
+    const interval = setInterval(() => {
+      setTypedTitle(titleText.slice(0, i + 1));
+      i++;
+      if (i >= titleText.length) clearInterval(interval);
+    }, 50);
+    return () => clearInterval(interval);
+  }, [isLogin, titleText]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validation RGPD : On bloque si on n'a pas le boolean true à l'inscription
     if (!isLogin && !acceptedCGU) {
       setError("Vous devez accepter les CGU pour continuer.");
       return;
     }
-
     setLoading(true);
     setError(null);
 
     try {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-      
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // On envoie acceptedCGU pour le stockage côté backend
         body: JSON.stringify({ 
           username, 
           password, 
@@ -41,11 +53,7 @@ export default function AuthPage() {
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Une erreur est survenue.");
-      }
-
+      if (!res.ok) throw new Error(data.error || "Une erreur est survenue.");
       router.push('/');
       router.refresh();
     } catch (err: any) {
@@ -57,86 +65,81 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-black relative overflow-hidden">
-      {/* BACKGROUND PREMIUM */}
-      <div className="absolute inset-0 bg-[url('/bk.jpg')] bg-cover bg-center opacity-40" />
+      {/* BACKGROUND CORRIGÉ (ajout bg-black pour le chargement) */}
+      <div className="absolute inset-0 bg-black bg-[url('/bk.jpg')] bg-cover bg-center opacity-40" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black" />
-      
-      {/* GLOW EFFECT */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-red-500/10 blur-[120px] rounded-full" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-red-500/10 blur-[100px] rounded-full" />
 
-      {/* HERO CONTENT DYNAMIQUE */}
-      <div className="relative z-10 text-center mb-10 max-w-lg">
-        <h1 className="text-5xl md:text-6xl font-black text-white mb-6 tracking-tight">
-          {isLogin ? (
-            <>Prêt pour votre <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-purple-500">prochain coup de cœur ?</span></>
-          ) : (
-            <>Ne scrollez plus <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-purple-500">pendant des heures</span></>
-          )}
+      {/* HERO CONTENT */}
+      <div className="relative z-10 text-center mb-6 max-w-sm px-2">
+        <h1 className="text-3xl md:text-5xl font-black text-white mb-4 tracking-tight min-h-[2.5em] flex items-center justify-center">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-purple-500">
+            {typedTitle}
+          </span>
         </h1>
-        <p className="text-gray-400 text-lg font-medium">
+        <p className="text-gray-400 text-sm md:text-lg font-medium leading-relaxed">
           {isLogin 
-            ? "Rejoignez CineMatch et laissez notre IA transformer votre façon de regarder des films."
-            : "Laissez l'IA choisir pour vous. Créez votre profil en quelques secondes."
+            ? "Retrouvez vos recommandations personnalisées instantanément."
+            : "Fini les heures de recherche. Inscrivez-vous pour obtenir vos suggestions sur-mesure."
           }
         </p>
       </div>
 
       {/* AUTH CARD */}
-      <div className="relative z-10 w-full max-w-md bg-white/5 backdrop-blur-2xl border border-white/10 p-8 rounded-3xl shadow-2xl">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-white mb-2">
+      <div className="relative z-10 w-full max-w-sm bg-white/5 backdrop-blur-2xl border border-white/10 p-6 rounded-3xl shadow-2xl">
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-white mb-1">
             {isLogin ? 'Bon retour' : 'Créer mon compte'}
           </h2>
-          <p className="text-sm text-gray-400">
+          <p className="text-xs text-gray-400">
             {isLogin ? 'Connectez-vous pour reprendre vos recommandations.' : 'Entrez vos informations pour démarrer.'}
           </p>
         </div>
 
         {error && (
-          <div className="mb-6 px-4 py-3 rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 text-sm animate-in fade-in">
+          <div className="mb-4 px-3 py-2 rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 text-xs animate-in fade-in">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleAuth} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Nom d'utilisateur</label>
+        <form onSubmit={handleAuth} className="space-y-3">
+          <div className="space-y-1">
+            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider ml-1">Nom d'utilisateur</label>
             <input
               type="text"
               required
               placeholder="ex: cinephile92"
-              className="w-full rounded-2xl bg-black/50 border border-white/10 px-5 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all"
+              // CORRECTION ZOOM IOS : text-base sur mobile, text-sm sur desktop
+              className="w-full rounded-xl bg-black/50 border border-white/10 px-4 py-3 text-base md:text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all"
               onChange={(e) => setUsername(e.target.value)}
               value={username}
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Mot de passe</label>
+          <div className="space-y-1">
+            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider ml-1">Mot de passe</label>
             <input
               type="password"
               required
               placeholder="••••••••"
-              className="w-full rounded-2xl bg-black/50 border border-white/10 px-5 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all"
+              // CORRECTION ZOOM IOS : text-base sur mobile, text-sm sur desktop
+              className="w-full rounded-xl bg-black/50 border border-white/10 px-4 py-3 text-base md:text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all"
               onChange={(e) => setPassword(e.target.value)}
               value={password}
             />
           </div>
 
-          {/* CHECKBOX RGPD/CGU (Uniquement inscription) */}
           {!isLogin && (
-            <div className="flex items-center gap-3 mt-4 mb-2">
+            <div className="flex items-center gap-2 mt-2 mb-2">
               <input
                 type="checkbox"
                 id="cgu"
                 checked={acceptedCGU}
                 onChange={(e) => setAcceptedCGU(e.target.checked)}
-                className="w-5 h-5 rounded border-white/10 bg-black/50 text-red-500 focus:ring-red-500/50 cursor-pointer"
+                className="w-4 h-4 rounded border-white/10 bg-black/50 text-red-500 focus:ring-red-500/50 cursor-pointer"
               />
-              <label htmlFor="cgu" className="text-sm text-gray-400 cursor-pointer">
-                J'accepte les <Link href="/cgu" className="text-red-400 font-bold hover:text-red-300">
-  CGU
-</Link> et la politique de confidentialité.
+              <label htmlFor="cgu" className="text-[11px] text-gray-400 cursor-pointer">
+                J'accepte les <Link href="/cgu" className="text-red-400 font-bold hover:text-red-300">CGU</Link>
               </label>
             </div>
           )}
@@ -144,7 +147,7 @@ export default function AuthPage() {
           <button
             disabled={loading || (!isLogin && !acceptedCGU)}
             className={`
-              w-full py-4 rounded-2xl font-bold text-white transition-all transform hover:scale-[1.02] active:scale-[0.98]
+              w-full py-3 rounded-xl font-bold text-sm text-white transition-all transform hover:scale-[1.02] active:scale-[0.98]
               ${(loading || (!isLogin && !acceptedCGU))
                 ? 'bg-gray-800 text-gray-500 cursor-not-allowed opacity-50' 
                 : 'bg-gradient-to-r from-red-600 to-purple-600 shadow-lg shadow-red-500/20'}
@@ -154,17 +157,17 @@ export default function AuthPage() {
           </button>
         </form>
 
-        <div className="mt-8 text-center">
+        <div className="mt-6 text-center">
           <button
             type="button"
             onClick={() => {
               setIsLogin(!isLogin);
               setError(null);
             }}
-            className="text-sm text-gray-500 hover:text-white transition-colors"
+            className="text-xs text-gray-500 hover:text-white transition-colors"
           >
             {isLogin ? "Vous n'avez pas de compte ? " : "Vous avez déjà un compte ? "}
-            <span className="ml-1 font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-purple-400 hover:from-red-300 hover:to-purple-300 transition-all duration-300">
+            <span className="ml-1 font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-purple-400">
               {isLogin ? 'S\'inscrire' : 'Se connecter'}
             </span>
           </button>
