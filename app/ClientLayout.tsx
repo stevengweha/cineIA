@@ -74,7 +74,7 @@ export default function ClientLayout({
 
   if (loading) {
     return (
-      <div className="h-[100dvh] flex items-center justify-center bg-black">
+      <div className="min-h-screen flex items-center justify-center bg-black">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-red-500/20 border-t-red-500 rounded-full animate-spin" />
           <p className="text-gray-400">Vérification de la session...</p>
@@ -84,9 +84,10 @@ export default function ClientLayout({
   }
 
   return (
-    // h-[100dvh] assure une hauteur parfaite sur mobile (iOS/Android)
-    <div className="h-[100dvh] overflow-hidden bg-black [overscroll-behavior-y:none]">
-      {/* HEADER MOBILE : Ajout de padding pour le Notch (encoche) */}
+    // min-h-screen permet au document de scroller naturellement, libérant la barre d'URL
+    <div className="min-h-screen bg-black">
+      
+      {/* HEADER MOBILE */}
       <header className="lg:hidden fixed top-0 left-0 right-0 z-50 h-16 pt-[env(safe-area-inset-top)] px-4 flex items-center justify-between bg-black/60 backdrop-blur-xl border-b border-white/10">
         <button onClick={() => setSidebarOpen(true)} className="text-2xl">☰</button>
         <h1 className="font-black text-xl bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">
@@ -102,16 +103,17 @@ export default function ClientLayout({
         <div className="lg:hidden fixed inset-0 bg-black/60 z-40" onClick={() => setSidebarOpen(false)} />
       )}
 
-      <div className="flex h-full pt-[env(safe-area-inset-top)] lg:pt-0">
+      {/* WRAPPER : Ajout d'un padding-top pour le header mobile fixe */}
+      <div className="flex min-h-screen pt-16 lg:pt-0">
+        
         {/* SIDEBAR */}
         <aside
           className={`
-            fixed lg:relative top-0 left-0 z-50 h-full w-72 bg-black/70 backdrop-blur-2xl border-r border-white/10 transition-transform duration-300
+            fixed lg:sticky top-0 left-0 z-50 h-screen w-72 bg-black/70 backdrop-blur-2xl border-r border-white/10 transition-transform duration-300
             ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
-            [overscroll-behavior-y:contain]
           `}
         >
-          <div className="h-full flex flex-col justify-between p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+          <div className="h-full flex flex-col justify-between p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[env(safe-area-inset-top)]">
             <div>
               <div className="flex items-center justify-between mb-10">
                 <h1 className="font-black text-3xl bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">
@@ -161,8 +163,8 @@ export default function ClientLayout({
           </div>
         </aside>
 
-        {/* MAIN : Ajout de padding bas pour la barre de gestes iOS */}
-        <main className="flex-1 overflow-y-auto pt-16 lg:pt-0 [overscroll-behavior-y:contain]">
+        {/* MAIN */}
+        <main className="flex-1 pb-[env(safe-area-inset-bottom)]">
           {children}
         </main>
       </div>
