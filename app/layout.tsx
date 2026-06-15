@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   authors: [{ name: 'CineMatch Team', url: 'https://www.cinematchia.online/' }],
 };
 
+
+
 export default function RootLayout({
   children,
 }: {
