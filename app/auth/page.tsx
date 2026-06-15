@@ -64,7 +64,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-black relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-black relative">
       {/* BACKGROUND CORRIGÉ (ajout bg-black pour le chargement) */}
       <div className="absolute inset-0 bg-black bg-[url('/bk.jpg')] bg-cover bg-center opacity-40" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black" />
