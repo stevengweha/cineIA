@@ -2,148 +2,168 @@
 
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 
 interface UserSession {
   id: number;
   username: string;
 }
 
-export default function ClientLayout({ children }: { children: React.ReactNode }) {
+export default function ClientLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const router = useRouter();
   const pathname = usePathname();
+
   const [user, setUser] = useState<UserSession | null>(null);
   const [loading, setLoading] = useState(true);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  // Fermer le menu si on clique à l'extérieur
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setUserMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
-      // 1. Liste des pages publiques
-    const publicPaths = ['/auth', '/cgu', '/privacy'];
-    
-    // 2. Si on est sur une page publique, on arrête la vérification
-    if (publicPaths.includes(pathname)) {
-      setLoading(false); 
-      return; 
-    }
+      if (pathname === '/auth' || pathname === '/cgu') {
+        setLoading(false);
+        return;
+      }
+
       try {
         const res = await fetch('/api/auth/me');
         const data = await res.json();
-        if (res.ok && data.user) setUser(data.user);
-        else router.push('/auth');
-      } catch { router.push('/auth'); }
-      finally { setLoading(false); }
+
+        if (res.ok && data.user) {
+          setUser(data.user);
+        } else {
+          router.push('/auth');
+        }
+      } catch {
+        router.push('/auth');
+      } finally {
+        setLoading(false);
+      }
     };
+
     checkSession();
   }, [pathname, router]);
 
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/auth');
-    router.refresh();
+    try {
+      const res = await fetch('/api/auth/logout', {
+        method: 'POST',
+      });
+
+      if (res.ok) {
+        router.push('/auth');
+        router.refresh();
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const navItems = [
     { href: '/catalogue', icon: '🎬', label: 'Catalogue' },
     { href: '/recommandations', icon: '⭐', label: 'Recommandations' },
-    { href: '/chatbot', icon: '🤖', label: 'CineIA' },
+    { href: '/chatbot', icon: '💬', label: 'CineIA' },
   ];
 
-  if (pathname === '/auth') return <>{children}</>;
+  if (pathname === '/auth' || pathname === '/cgu') {
+    return <>{children}</>;
+  }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <div className="w-12 h-12 border-4 border-red-500/20 border-t-red-500 rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-red-500/20 border-t-red-500 rounded-full animate-spin" />
+          <p className="text-gray-400">Vérification de la session...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* HEADER MOBILE (Top) */}
-      <header className="lg:hidden fixed top-0 w-full z-40 h-16 bg-black/60 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-4">
-        <h1 className="font-black text-xl bg-gradient-to-r from-red-500 to-purple-500 bg-clip-text text-transparent">
+    <div className="min-h-screen overflow-hidden">
+      {/* HEADER MOBILE */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 h-16 px-4 flex items-center justify-between bg-black/60 backdrop-blur-xl border-b border-white/10">
+        <button onClick={() => setSidebarOpen(true)} className="text-2xl">☰</button>
+        <h1 className="font-black text-xl bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">
           CineMatch
         </h1>
-        
-        {/* Profile Menu Mobile */}
-        <div className="relative" ref={menuRef}>
-          <button 
-            onClick={() => setUserMenuOpen(!userMenuOpen)}
-            className="w-9 h-9 rounded-full bg-gradient-to-r from-red-500 to-pink-500 flex items-center justify-center font-bold text-white shadow-lg"
-          >
-            {user?.username?.charAt(0).toUpperCase()}
-          </button>
+        <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center font-bold">
+          {user?.username?.charAt(0).toUpperCase()}
+        </div>
+      </header>
 
-          {userMenuOpen && (
-            <div className="absolute right-0 mt-3 w-48 bg-black/90 border border-white/10 rounded-2xl p-2 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200">
-              <p className="px-4 py-2 text-xs text-gray-400 uppercase tracking-wider">Connecté</p>
-              <p className="px-4 py-1 font-semibold">{user?.username}</p>
-              <button 
+      {/* OVERLAY MOBILE */}
+      {sidebarOpen && (
+        <div className="lg:hidden fixed inset-0 bg-black/60 z-40" onClick={() => setSidebarOpen(false)} />
+      )}
+
+      <div className="flex h-screen">
+        {/* SIDEBAR */}
+        <aside
+          className={`
+            fixed lg:relative top-0 left-0 z-50 h-full w-72 bg-black/70 backdrop-blur-2xl border-r border-white/10 transition-transform duration-300
+            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
+          `}
+        >
+          <div className="h-full flex flex-col justify-between p-6">
+            <div>
+              <div className="flex items-center justify-between mb-10">
+                <h1 className="font-black text-3xl bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">
+                  CineMatch
+                </h1>
+                <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-xl">✕</button>
+              </div>
+
+              <nav className="space-y-2">
+                {navItems.map((item) => {
+                  const active = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setSidebarOpen(false)}
+                      className={`
+                        flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-300
+                        ${active ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg shadow-red-500/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}
+                      `}
+                    >
+                      <span className="text-xl">{item.icon}</span>
+                      <span className="font-semibold">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+
+            <div className="border-t border-white/10 pt-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-11 h-11 rounded-full bg-gradient-to-r from-red-500 to-pink-500 flex items-center justify-center font-bold">
+                  {user?.username?.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 uppercase">Connecté</p>
+                  <p className="font-semibold truncate max-w-[150px]">{user?.username}</p>
+                </div>
+              </div>
+              <button
                 onClick={handleLogout}
-                className="w-full text-left px-4 py-2 mt-2 text-red-400 hover:bg-white/5 rounded-xl font-medium transition"
+                className="w-full rounded-xl py-3 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition font-semibold"
               >
                 Déconnexion
               </button>
             </div>
-          )}
-        </div>
-      </header>
-
-      {/* LAYOUT CONTAINER */}
-      <div className="flex min-h-screen">
-        
-        {/* SIDEBAR DESKTOP */}
-        <aside className="hidden lg:flex w-72 h-screen fixed left-0 top-0 bg-black/70 border-r border-white/10 flex-col p-6">
-          <div className="flex-1">
-            <h1 className="font-black text-3xl mb-10 bg-gradient-to-r from-red-500 to-purple-500 bg-clip-text text-transparent">
-              CineMatch
-            </h1>
-            <nav className="space-y-2">
-              {navItems.map((item) => (
-                <Link key={item.href} href={item.href} className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition ${pathname === item.href ? 'bg-gradient-to-r from-red-600 to-pink-600' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-                  <span className="text-xl">{item.icon}</span>
-                  <span className="font-semibold">{item.label}</span>
-                </Link>
-              ))}
-            </nav>
           </div>
-          <button onClick={handleLogout} className="w-full rounded-xl py-3 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition font-semibold">
-            Déconnexion
-          </button>
         </aside>
 
-        {/* MAIN CONTENT */}
-        <main className="flex-1 lg:pl-72 pb-24 lg:pb-0 pt-20 lg:pt-0">
+        {/* MAIN */}
+        <main className="flex-1 overflow-y-auto pt-16 lg:pt-0">
           {children}
         </main>
       </div>
-
-      {/* BOTTOM BAR MOBILE */}
-      <nav className="lg:hidden fixed bottom-4 left-4 right-4 z-40 h-16 bg-black/80 backdrop-blur-2xl border border-white/10 rounded-2xl flex items-center justify-around px-2 shadow-2xl">
-        {navItems.map((item) => (
-          <Link 
-            key={item.href} 
-            href={item.href} 
-            className={`p-3 rounded-xl transition ${pathname === item.href ? 'bg-white/10 text-white' : 'text-gray-500'}`}
-          >
-            <span className="text-2xl">{item.icon}</span>
-          </Link>
-        ))}
-      </nav>
     </div>
   );
 }
