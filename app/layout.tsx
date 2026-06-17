@@ -1,16 +1,24 @@
-import { Metadata } from 'next';
+// app/layout.tsx
+import { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Analytics } from "@vercel/analytics/next";
-import ClientLayout from './ClientLayout'; // Import du composant client
+import ClientLayout from './ClientLayout';
 
 export const metadata: Metadata = {
-  title: 'CineMatch - Vos recommandations de films', 
+  title: 'CineMatch - Vos recommandations de films',
   description: 'Découvrez des films recommandés par notre IA en fonction de vos goûts et de vos notes.',
   keywords: ['films', 'recommandations', 'cinéma', 'IA', 'CineMatch'],
   authors: [{ name: 'CineMatch Team', url: 'https://www.cinematchia.online/' }],
 };
 
-
+// Indispensable pour que env(safe-area-inset-*) fonctionne sur iOS (notch / Dynamic Island)
+// et pour un rendu cohérent entre iOS, Android et desktop.
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#030712',
+};
 
 export default function RootLayout({
   children,
@@ -19,10 +27,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      {/* Le body reste côté serveur, on lui donne juste les couleurs de fond de base */}
-      <body className="bg-[#030712] text-white">
-        
-        {/* On délègue toute la logique interactive au composant Client */}
+      {/* overflow-x-hidden en garde-fou contre tout débordement horizontal sur mobile */}
+      <body className="bg-[#030712] text-white overflow-x-hidden">
         <ClientLayout>
           {children}
         </ClientLayout>
